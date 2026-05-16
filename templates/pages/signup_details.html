@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Complete Signup — SecuStore{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { overflow-x: hidden; }
+
+  .signup-wrap {
+    min-height: calc(100vh - 62px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .signup-card {
+    width: 100%;
+    max-width: 520px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.12);
+    overflow: hidden;
+    animation: cardIn .4s cubic-bezier(.4,0,.2,1);
+  }
+  [data-theme="dark"] .signup-card {
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  @keyframes cardIn { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+
+  .signup-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    padding: 32px 32px 26px;
+    text-align: center;
+    color: #fff;
+  }
+  .signup-header .step-pill {
+    display: inline-block;
+    background: rgba(255,255,255,.18);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 600;
+    padding: 4px 11px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+    letter-spacing: .04em;
+  }
+  .signup-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
+  .signup-header p  { font-size: .85rem; opacity: .78; margin: 6px 0 0; }
+
+  .signup-body { padding: 28px 32px 32px; }
+
+  .step-track {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 22px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .step-dot {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-dot.active   { background: var(--primary); color: #fff; }
+  .step-dot.done     { background: var(--success); color: #fff; }
+  .step-dot.inactive { background: var(--border);  color: var(--text2); }
+  .step-line { flex: 1; height: 2px; background: var(--border); border-radius: 2px; }
+  .step-line.done { background: var(--success); }
+  .step-label { font-size: .76rem; color: var(--text2); font-weight: 500; }
+  .step-label.active { color: var(--text); font-weight: 600; }
+
+  .verified-email {
+    background: rgba(16,185,129,.08);
+    border: 1px solid rgba(16,185,129,.25);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: .85rem;
+    color: var(--text);
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .verified-email i { color: var(--success); font-size: 1.05rem; }
+
+  .btn-primary-grad {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border: none; width: 100%; padding: 12px;
+    border-radius: 12px; font-weight: 600; font-size: .95rem;
+    color: #fff; transition: all .2s; margin-top: 8px;
+  }
+  .btn-primary-grad:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37,99,235,.35);
+    color: #fff;
+  }
+
+  .pwd-toggle {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px;
+  }
+
+  /* Password strength bar */
+  .pwd-meter {
+    height: 4px; background: var(--border); border-radius: 2px;
+    margin-top: 6px; overflow: hidden;
+  }
+  .pwd-meter .bar { height: 100%; width: 0; transition: width .2s, background .2s; }
+  .pwd-hint { font-size: .73rem; color: var(--text2); margin-top: 4px; }
+
+  .checkbox-row {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: .82rem; color: var(--text2);
+    margin-top: 6px;
+  }
+  .checkbox-row input { accent-color: var(--primary); margin-top: 2px; }
+  .checkbox-row a { font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="signup-wrap">
+  <div class="signup-card">
+    <div class="signup-header">
+      <span class="step-pill">STEP 3 OF 3</span>
+      <h1>Complete your profile</h1>
+      <p>Just a few more details to finish</p>
+    </div>
+
+    <div class="signup-body">
+
+      <!-- Progress track -->
+      <div class="step-track">
+        <div class="step-dot done"><i class="bi bi-check" style="font-size:.95rem;"></i></div>
+        <span class="step-label">Email</span>
+        <div class="step-line done"></div>
+        <div class="step-dot done"><i class="bi bi-check" style="font-size:.95rem;"></i></div>
+        <span class="step-label">Verify</span>
+        <div class="step-line done"></div>
+        <div class="step-dot active">3</div>
+        <span class="step-label active">Details</span>
+      </div>
+
+      <div class="verified-email">
+        <i class="bi bi-patch-check-fill"></i>
+        <div>
+          <div style="font-size:.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Verified email</div>
+          <strong style="color:var(--text);">{{ email }}</strong>
+        </div>
+      </div>
+
+      <form method="POST" action="{% url 'signup_details' %}" id="signupForm">
+        {% csrf_token %}
+
+        <div class="row g-2 mb-3">
+          <div class="col">
+            <label class="form-label">First Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="first_name" required autofocus>
+          </div>
+          <div class="col">
+            <label class="form-label">Last Name</label>
+            <input type="text" class="form-control" name="last_name">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Username <span class="text-danger">*</span></label>
+          <div style="position:relative;">
+            <i class="bi bi-person" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text2);"></i>
+            <input type="text" class="form-control" name="username" required autocomplete="username"
+                   style="padding-left:36px;" placeholder="your_username">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password <span class="text-danger">*</span></label>
+          <div style="position:relative;">
+            <i class="bi bi-lock" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text2);"></i>
+            <input type="password" class="form-control" name="password" id="pwdInput" required autocomplete="new-password"
+                   style="padding-left:36px;padding-right:40px;" placeholder="At least 10 characters">
+            <button type="button" onclick="togglePwd('pwdInput','eye1')" class="pwd-toggle">
+              <i class="bi bi-eye" id="eye1"></i>
+            </button>
+          </div>
+          <div class="pwd-meter"><div class="bar" id="pwdBar"></div></div>
+          <div class="pwd-hint">
+            Must include upper + lower + digit + special character.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+          <div style="position:relative;">
+            <i class="bi bi-lock-fill" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text2);"></i>
+            <input type="password" class="form-control" name="password_confirm" id="pwd2Input" required autocomplete="new-password"
+                   style="padding-left:36px;padding-right:40px;" placeholder="Repeat password">
+            <button type="button" onclick="togglePwd('pwd2Input','eye2')" class="pwd-toggle">
+              <i class="bi bi-eye" id="eye2"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="terms" name="terms_agreement" required>
+          <label for="terms">I agree to the <a href="{% url 'terms_conditions' %}">terms and conditions</a></label>
+        </div>
+
+        <button type="submit" class="btn-primary-grad" onclick="showLoading('Creating your account…')">
+          <i class="bi bi-check2-circle me-2"></i>Create Account
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePwd(inputId, iconId) {
+  const i = document.getElementById(inputId);
+  const e = document.getElementById(iconId);
+  if (i.type === 'password') { i.type = 'text'; e.className = 'bi bi-eye-slash'; }
+  else { i.type = 'password'; e.className = 'bi bi-eye'; }
+}
+
+/* Simple password strength meter */
+const pwd = document.getElementById('pwdInput');
+const bar = document.getElementById('pwdBar');
+pwd.addEventListener('input', () => {
+  let s = 0;
+  if (pwd.value.length >= 10) s++;
+  if (/[A-Z]/.test(pwd.value)) s++;
+  if (/[a-z]/.test(pwd.value)) s++;
+  if (/\d/.test(pwd.value))    s++;
+  if (/[^A-Za-z0-9]/.test(pwd.value)) s++;
+  const widths = ['0%', '20%', '40%', '60%', '80%', '100%'];
+  const colors = ['transparent', '#ef4444', '#f59e0b', '#f59e0b', '#3b82f6', '#10b981'];
+  bar.style.width = widths[s];
+  bar.style.background = colors[s];
+});
+</script>
+{% endblock %}

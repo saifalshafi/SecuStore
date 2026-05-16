@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}File Review — SecuStore Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .section-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--card-shadow); }
+  .section-card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .section-card-header h5 { font-weight:700; margin:0; color:var(--text); font-size:1rem; }
+  .status-pending  { background:rgba(245,158,11,.15); color:#d97706; }
+  .status-approved { background:rgba(16,185,129,.15);  color:#10b981; }
+  .status-rejected { background:rgba(239,68,68,.15);   color:#ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="page-title mb-0"><i class="bi bi-folder-check me-2" style="color:var(--primary)"></i>File Review</h1>
+  <div class="d-flex gap-2">
+    <a href="{% url 'export_files_csv' %}" class="btn btn-success btn-sm"><i class="bi bi-download me-1"></i>Export CSV</a>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    <div class="section-card p-3 text-center">
+      <div style="font-size:1.8rem;font-weight:700;color:#d97706;">{{ pending_count }}</div>
+      <div style="font-size:.8rem;color:var(--text2);">Pending</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="section-card p-3 text-center">
+      <div style="font-size:1.8rem;font-weight:700;color:#10b981;">{{ approved_count }}</div>
+      <div style="font-size:.8rem;color:var(--text2);">Approved</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="section-card p-3 text-center">
+      <div style="font-size:1.8rem;font-weight:700;color:#ef4444;">{{ rejected_count }}</div>
+      <div style="font-size:.8rem;color:var(--text2);">Rejected</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header">
+    <h5><i class="bi bi-files me-2"></i>All Files</h5>
+    <input type="text" id="fileSearch" class="form-control" placeholder="Search…" style="max-width:200px;font-size:.85rem;padding:5px 10px;">
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" id="filesTable" style="font-size:.85rem;">
+      <thead style="color:var(--text2);border-bottom:1px solid var(--border);">
+        <tr>
+          <th class="px-4 py-3">File</th>
+          <th>Owner</th>
+          <th>Size</th>
+          <th>Uploaded</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in all_files %}
+        <tr data-name="{{ f.file_metadata.name|lower|default:'' }} {{ f.owner.username|lower }}">
+          <td class="px-4">
+            <div style="font-weight:600;color:var(--text);">{{ f.file_metadata.name|default:"—" }}</div>
+            <div style="font-size:.75rem;color:var(--text2);">{{ f.file_metadata.file_type|default:"" }}</div>
+          </td>
+          <td>
+            <span style="font-weight:500;">{{ f.owner.username }}</span><br>
+            <span style="font-size:.75rem;color:var(--text2);">{{ f.owner.email }}</span>
+          </td>
+          <td style="color:var(--text2);">{{ f.file_metadata.size|filesizeformat|default:"—" }}</td>
+          <td style="color:var(--text2);">{{ f.uploaded_at|date:"M d, Y H:i" }}</td>
+          <td>
+            {% if f.status == 'pending' %}<span class="badge status-pending">⏳ Pending</span>
+            {% elif f.status == 'approved' %}<span class="badge status-approved">✓ Approved</span>
+            {% elif f.status == 'rejected' %}<span class="badge status-rejected">✗ Rejected</span>{% endif %}
+            {% if f.reviewed_by %}<div style="font-size:.72rem;color:var(--text2);margin-top:2px;">by {{ f.reviewed_by.username }}</div>{% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1 flex-wrap">
+
+              <!-- زر Review — لكل الملفات بغض النظر عن الحالة -->
+              <a href="{% url 'files:admin_download_file' f.id %}"
+                 class="btn btn-sm btn-outline-info"
+                 style="font-size:.75rem;padding:3px 8px;"
+                 title="Download to review">
+                 <i class="bi bi-eye"></i> Review
+              </a>
+
+              <!-- Approve و Reject بس للملفات pending -->
+              {% if f.status == 'pending' %}
+              <form method="post" action="{% url 'files:admin_approve_file' f.id %}">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-success" style="font-size:.75rem;padding:3px 10px;">
+                  <i class="bi bi-check-lg me-1"></i>Approve
+                </button>
+              </form>
+              <button class="btn btn-sm btn-warning" style="font-size:.75rem;padding:3px 10px;" onclick="showRejectForm({{ f.id }})">
+                <i class="bi bi-x-lg me-1"></i>Reject
+              </button>
+              {% endif %}
+
+              <!-- حذف — لكل الملفات -->
+              <form method="post" action="{% url 'files:admin_delete_file' f.id %}" onsubmit="return confirm('Permanently delete this file?')">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" style="font-size:.75rem;padding:3px 8px;" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+
+            </div>
+
+            <!-- Reject form (hidden) -->
+            <div id="reject-form-{{ f.id }}" style="display:none;margin-top:6px;">
+              <form method="post" action="{% url 'files:admin_reject_file' f.id %}">
+                {% csrf_token %}
+                <div class="d-flex gap-1">
+                  <input type="text" name="rejection_note" class="form-control form-control-sm" placeholder="Reason (optional)" style="font-size:.78rem;">
+                  <button type="submit" class="btn btn-sm btn-danger" style="font-size:.75rem;white-space:nowrap;">Confirm</button>
+                </div>
+              </form>
+            </div>
+
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center py-5" style="color:var(--text2);">No files uploaded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('fileSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#filesTable tbody tr').forEach(r => {
+    r.style.display = (r.dataset.name||'').includes(q) ? '' : 'none';
+  });
+});
+function showRejectForm(id) {
+  const el = document.getElementById('reject-form-' + id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

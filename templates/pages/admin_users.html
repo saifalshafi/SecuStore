@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}User Management — SecuStore Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .section-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--card-shadow); }
+  .section-card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .section-card-header h5 { font-weight:700; margin:0; color:var(--text); font-size:1rem; }
+  .user-avatar { width:38px; height:38px; border-radius:50%; background:var(--primary-glow); display:flex; align-items:center; justify-content:center; color:var(--primary); font-weight:700; font-size:.95rem; flex-shrink:0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="page-title mb-0"><i class="bi bi-people me-2" style="color:var(--primary)"></i>User Management</h1>
+  <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header">
+    <h5><i class="bi bi-people me-2"></i>All Accounts ({{ users|length }})</h5>
+    <input type="text" id="userSearch" class="form-control" placeholder="Search…" style="max-width:200px;font-size:.85rem;padding:5px 10px;">
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" id="usersTable" style="font-size:.85rem;">
+      <thead style="color:var(--text2);border-bottom:1px solid var(--border);">
+        <tr><th class="px-4 py-3">User</th><th>Joined</th><th>Files</th><th>Storage</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr data-username="{{ u.username|lower }}">
+          <td class="px-4">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="user-avatar">{{ u.username|first|upper }}</div>
+              <div>
+                <div style="font-weight:600;color:var(--text);">
+                  {{ u.username }}
+                  {% if u.is_staff %}<span class="badge ms-1" style="background:rgba(239,68,68,.15);color:#ef4444;font-size:.65em;">Staff</span>{% endif %}
+                  {% if u.is_superuser %}<span class="badge ms-1" style="background:rgba(139,92,246,.15);color:#8b5cf6;font-size:.65em;">Superuser</span>{% endif %}
+                </div>
+                <div style="font-size:.75rem;color:var(--text2);">{{ u.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="color:var(--text2);">{{ u.date_joined|date:"M d, Y" }}</td>
+          <td><span class="badge" style="background:var(--primary-glow);color:var(--primary);">{{ u.file_count|default:0 }}</span></td>
+          <td style="color:var(--text2);">{{ u.total_size|default:0|filesizeformat }}</td>
+          <td>
+            {% if u.is_active %}<span class="badge" style="background:rgba(16,185,129,.15);color:#10b981;">● Active</span>
+            {% else %}<span class="badge" style="background:rgba(100,116,139,.15);color:#64748b;">● Inactive</span>{% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1 flex-wrap">
+              <a href="{% url 'user_files' u.id %}" class="btn btn-sm btn-outline-primary" style="font-size:.75rem;padding:3px 8px;" title="View Files"><i class="bi bi-folder2"></i></a>
+              {% if not u.is_staff %}
+              <form method="post" action="{% url 'admin_toggle_user' u.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}" style="font-size:.75rem;padding:3px 10px;">
+                  {% if u.is_active %}<i class="bi bi-pause-circle me-1"></i>Deactivate{% else %}<i class="bi bi-play-circle me-1"></i>Activate{% endif %}
+                </button>
+              </form>
+              <form method="post" action="{% url 'admin_delete_user' u.id %}" onsubmit="return confirm('Permanently delete {{ u.username }} and all their data?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:.75rem;padding:3px 10px;"><i class="bi bi-trash me-1"></i>Delete</button>
+              </form>
+              {% else %}
+              <span style="font-size:.75rem;color:var(--text2);padding:4px 0;">Protected</span>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('userSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#usersTable tbody tr').forEach(r => {
+    r.style.display = r.dataset.username.includes(q) ? '' : 'none';
+  });
+});
+</script>
+{% endblock %}

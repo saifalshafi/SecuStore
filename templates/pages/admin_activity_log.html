@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Activity Log — SecuStore Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .section-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--card-shadow); }
+  .section-card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  .section-card-header h5 { font-weight:700; margin:0; color:var(--text); font-size:1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="page-title mb-0"><i class="bi bi-journal-text me-2" style="color:var(--primary)"></i>Activity Log</h1>
+  <div class="d-flex gap-2">
+    <a href="{% url 'export_activity_csv' %}" class="btn btn-success btn-sm">
+      <i class="bi bi-download me-1"></i>Export CSV
+    </a>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Dashboard
+    </a>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-card-header">
+    <h5><i class="bi bi-filter me-2"></i>Filter</h5>
+    <form method="get" class="d-flex gap-2 flex-wrap">
+      <input type="text" name="user" value="{{ q_user }}" class="form-control form-control-sm" placeholder="Username…" style="max-width:150px;">
+      <input type="text" name="action" value="{{ q_action }}" class="form-control form-control-sm" placeholder="Action…" style="max-width:150px;">
+      <button type="submit" class="btn btn-sm btn-primary">Search</button>
+      <a href="{% url 'admin_activity_log' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:.84rem;">
+      <thead style="color:var(--text2);border-bottom:1px solid var(--border);">
+        <tr><th class="px-4 py-3">User</th><th>Action</th><th>Time</th><th>IP</th></tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td class="px-4" style="font-weight:600;color:var(--text);">{{ log.user.username|default:"Anonymous" }}</td>
+          <td style="color:var(--text2);">{{ log.action }}</td>
+          <td style="color:var(--text2);">{{ log.timestamp|date:"M d, Y H:i:s" }}</td>
+          <td><code style="font-size:.8em;">{{ log.ip_address|default:"—" }}</code></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center py-5" style="color:var(--text2);">No activity found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

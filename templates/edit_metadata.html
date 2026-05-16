@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Edit — {{ file.file_metadata.name }} · SecuStore{% endblock %}
+
+{% block extra_css %}
+<style>
+  .edit-wrap {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* gradient header — same as login page */
+  .edit-card-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 26px 28px 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .edit-card-header .file-icon-wrap {
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,.15);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: #fff; flex-shrink: 0;
+  }
+  .edit-card-header h2 {
+    font-size: 1.15rem; font-weight: 700;
+    color: #fff; margin: 0;
+  }
+  .edit-card-header p {
+    font-size: .8rem; color: rgba(255,255,255,.65);
+    margin: 3px 0 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 360px;
+  }
+
+  .edit-card-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 28px;
+    box-shadow: var(--card-shadow);
+  }
+
+  /* meta strip */
+  .meta-strip {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-bottom: 24px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: .79rem; color: var(--text2);
+  }
+  .meta-strip .chip { display: flex; align-items: center; gap: 5px; }
+  .meta-strip .chip strong { color: var(--text); }
+  .meta-strip .enc-badge {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 5px;
+    color: var(--primary); font-weight: 600;
+  }
+
+  /* section label — same as .section-label from base */
+  .form-section-label {
+    font-size: .72rem; font-weight: 600;
+    letter-spacing: .07em; text-transform: uppercase;
+    color: var(--text2); margin-bottom: 7px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* permission cards */
+  .perm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .perm-card {
+    position: relative;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 14px;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex; align-items: flex-start; gap: 10px;
+    user-select: none;
+  }
+  .perm-card input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .perm-card:hover { border-color: var(--primary); background: var(--primary-glow); }
+  .perm-card.active-private { border-color: var(--danger); background: rgba(239,68,68,.07); }
+  .perm-card.active-public  { border-color: var(--success); background: rgba(16,185,129,.07); }
+  .perm-card .perm-ico  { font-size: 1.25rem; margin-top: 1px; flex-shrink: 0; }
+  .perm-card .perm-name { font-size: .88rem; font-weight: 600; color: var(--text); }
+  .perm-card .perm-hint { font-size: .74rem; color: var(--text2); margin-top: 1px; }
+  .perm-card .perm-check {
+    margin-left: auto; flex-shrink: 0;
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .6rem; color: transparent;
+    transition: all var(--transition);
+  }
+  .perm-card.active-private .perm-check { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .perm-card.active-public  .perm-check { background: var(--success); border-color: var(--success); color: #fff; }
+
+  /* expiry hint */
+  .expiry-hint {
+    margin-top: 7px; padding: 9px 12px;
+    border-radius: 8px;
+    background: rgba(245,158,11,.08);
+    border: 1px solid rgba(245,158,11,.22);
+    font-size: .77rem; color: var(--text2);
+    display: flex; align-items: flex-start; gap: 7px;
+  }
+  .expiry-hint i { color: var(--warning); margin-top: 1px; flex-shrink: 0; }
+
+  .form-divider { height: 1px; background: var(--border); margin: 22px 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-wrap">
+
+  <!-- breadcrumb -->
+  <nav style="font-size:.82rem;color:var(--text2);margin-bottom:18px;">
+    <a href="{% url 'files:file_management' %}" style="color:var(--text2);">
+      <i class="bi bi-folder2-open me-1"></i>My Files
+    </a>
+    <i class="bi bi-chevron-right mx-1" style="font-size:.7rem;"></i>
+    <span style="color:var(--text);">Edit Details</span>
+  </nav>
+
+  <!-- Card -->
+  <div>
+
+    <!-- gradient header -->
+    <div class="edit-card-header">
+      <div class="file-icon-wrap">
+        {% with t=file.file_metadata.file_type %}
+          {% if "image" in t %}<i class="bi bi-file-earmark-image"></i>
+          {% elif "pdf" in t %}<i class="bi bi-file-earmark-pdf"></i>
+          {% elif "zip" in t or "compressed" in t %}<i class="bi bi-file-earmark-zip"></i>
+          {% elif "word" in t or "document" in t %}<i class="bi bi-file-earmark-word"></i>
+          {% elif "sheet" in t or "excel" in t or "csv" in t %}<i class="bi bi-file-earmark-spreadsheet"></i>
+          {% else %}<i class="bi bi-file-earmark-text"></i>
+          {% endif %}
+        {% endwith %}
+      </div>
+      <div style="min-width:0;">
+        <h2>Edit File Details</h2>
+        <p title="{{ file.file_metadata.name }}">{{ file.file_metadata.name }}</p>
+      </div>
+    </div>
+
+    <!-- card body -->
+    <div class="edit-card-body">
+
+      <!-- meta strip -->
+      <div class="meta-strip">
+        <span class="chip"><i class="bi bi-hdd"></i><strong>{{ file.file_metadata.size|filesizeformat }}</strong></span>
+        <span class="chip"><i class="bi bi-calendar3"></i><strong>{{ file.uploaded_at|date:"M d, Y" }}</strong></span>
+        <span class="chip"><i class="bi bi-file-earmark"></i><strong>{{ file.file_metadata.file_type|default:"Unknown" }}</strong></span>
+        <span class="enc-badge"><i class="bi bi-shield-lock-fill"></i>AES-256 Encrypted</span>
+      </div>
+
+      <!-- form -->
+      <form method="post" id="editForm">
+        {% csrf_token %}
+
+        <!-- Description -->
+        <div class="mb-4">
+          <div class="form-section-label"><i class="bi bi-card-text"></i> Description</div>
+          <textarea class="form-control" name="description" rows="3"
+            placeholder="Add a short description for this file…">{{ form.description.value|default:'' }}</textarea>
+          {% if form.description.errors %}
+            <div class="mt-1" style="font-size:.8rem;color:var(--danger);">{{ form.description.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Tags -->
+        <div class="mb-4">
+          <div class="form-section-label"><i class="bi bi-tags"></i> Tags</div>
+          <input type="text" class="form-control" name="tags"
+            value="{{ form.tags.value|default:'' }}"
+            placeholder="e.g. finance, 2025, confidential">
+          <div style="font-size:.74rem;color:var(--text2);margin-top:5px;">Separate multiple tags with commas.</div>
+          {% if form.tags.errors %}
+            <div class="mt-1" style="font-size:.8rem;color:var(--danger);">{{ form.tags.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Category -->
+        <div class="mb-4">
+          <div class="form-section-label"><i class="bi bi-folder2"></i> Category</div>
+          <input type="text" class="form-control" name="category"
+            value="{{ form.category.value|default:'' }}"
+            placeholder="e.g. Documents, Reports, Personal…">
+          {% if form.category.errors %}
+            <div class="mt-1" style="font-size:.8rem;color:var(--danger);">{{ form.category.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- Permissions -->
+        <div class="mb-4">
+          <div class="form-section-label mb-2"><i class="bi bi-eye"></i> Visibility</div>
+          <div class="perm-row">
+
+            <label class="perm-card {% if form.permissions.value == 'private' or not form.permissions.value %}active-private{% endif %}" id="card-private">
+              <input type="radio" name="permissions" value="private"
+                {% if form.permissions.value == 'private' or not form.permissions.value %}checked{% endif %}>
+              <span class="perm-ico">🔒</span>
+              <div>
+                <div class="perm-name">Private</div>
+                <div class="perm-hint">Only you can access</div>
+              </div>
+              <div class="perm-check"><i class="bi bi-check"></i></div>
+            </label>
+
+            <label class="perm-card {% if form.permissions.value == 'public' %}active-public{% endif %}" id="card-public">
+              <input type="radio" name="permissions" value="public"
+                {% if form.permissions.value == 'public' %}checked{% endif %}>
+              <span class="perm-ico">🌐</span>
+              <div>
+                <div class="perm-name">Public</div>
+                <div class="perm-hint">Visible to others</div>
+              </div>
+              <div class="perm-check"><i class="bi bi-check"></i></div>
+            </label>
+
+          </div>
+          {% if form.permissions.errors %}
+            <div class="mt-2" style="font-size:.8rem;color:var(--danger);">{{ form.permissions.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Expiration date -->
+        <div class="mb-4">
+          <div class="form-section-label">
+            <i class="bi bi-clock-history"></i> Expiration Date
+            <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.9em;color:var(--text2);">— optional</span>
+          </div>
+          <input type="date" class="form-control" name="expiration_date"
+            value="{{ form.expiration_date.value|date:'Y-m-d'|default:'' }}">
+          <div class="expiry-hint">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>The file will be <strong>permanently deleted</strong> on this date. Leave blank to keep it indefinitely.</span>
+          </div>
+          {% if form.expiration_date.errors %}
+            <div class="mt-1" style="font-size:.8rem;color:var(--danger);">{{ form.expiration_date.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- Actions — same style as file_management buttons -->
+        <div class="d-flex gap-2 justify-content-end">
+          <a href="{% url 'files:file_management' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Cancel
+          </a>
+          <button type="submit" class="btn btn-primary" id="saveBtn"
+                  onclick="showLoading('Saving changes…')">
+            <i class="bi bi-check-lg me-1"></i>Save Changes
+          </button>
+        </div>
+
+      </form>
+    </div><!-- /edit-card-body -->
+  </div><!-- /card -->
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var cp = document.getElementById('card-private');
+  var cu = document.getElementById('card-public');
+
+  function setPerm(val) {
+    cp.classList.remove('active-private');
+    cu.classList.remove('active-public');
+    if (val === 'private') {
+      cp.classList.add('active-private');
+      cp.querySelector('input').checked = true;
+    } else {
+      cu.classList.add('active-public');
+      cu.querySelector('input').checked = true;
+    }
+  }
+
+  cp.addEventListener('click', function () { setPerm('private'); });
+  cu.addEventListener('click', function () { setPerm('public'); });
+})();
+</script>
+{% endblock %}

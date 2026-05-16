@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5" style="max-width:900px;">
+  <div class="card shadow p-4" style="border-radius:18px;">
+    <h2 class="mb-3">About SecuStore</h2>
+    <p style="color:#555;">
+      SecuStore is a secure file storage platform focused on privacy and protection.
+      It helps users upload, store, and share files safely with encryption and strong authentication.
+    </p>
+
+    <hr>
+
+    <h5>Why SecuStore?</h5>
+    <ul>
+      <li>AES-based encrypted file storage</li>
+      <li>Email-based One-Time Password (2FA)</li>
+      <li>Real-time activity logging using Django Auditlog</li>
+      <li>Brute-force protection</li>
+    </ul>
+
+    <a href="{% url 'index' %}" class="btn btn-warning mt-3">Back to Home</a>
+  </div>
+</div>
+{% endblock %}

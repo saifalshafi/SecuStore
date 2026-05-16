@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Home — SecuStore{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Hero ────────────────────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    color: #fff;
+    border-radius: 22px;
+    padding: 56px 44px 52px;
+    margin-bottom: 36px;
+    box-shadow: 0 20px 60px rgba(30,58,95,.18);
+  }
+  .hero::before {
+    content: ''; position: absolute;
+    top: -80px; right: -80px; width: 280px; height: 280px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.18), transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: ''; position: absolute;
+    bottom: -100px; left: -60px; width: 260px; height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.12), transparent 70%);
+    pointer-events: none;
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 720px; }
+  .hero-greeting {
+    font-size: .82rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    opacity: .82;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .hero h1 {
+    font-size: 2.4rem; font-weight: 800; margin: 0 0 14px;
+    line-height: 1.15; color: #fff;
+  }
+  .hero h1 .accent {
+    background: linear-gradient(90deg, #fef9c3, #fde68a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    font-size: 1.02rem; opacity: .88; line-height: 1.55;
+    margin: 0 0 22px; max-width: 580px; color: #fff;
+  }
+  .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #fff; color: #1e3a5f;
+    padding: 11px 22px; border-radius: 12px;
+    font-weight: 600; font-size: .92rem;
+    text-decoration: none; transition: all .2s;
+    border: none;
+  }
+  .hero-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.2);
+    color: #1e3a5f;
+  }
+  .hero-btn.ghost {
+    background: rgba(255,255,255,.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.3);
+  }
+  .hero-btn.ghost:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+  /* ── Stats row ───────────────────────────────────────────────────── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .stat-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: var(--card-shadow);
+    display: flex; align-items: center; gap: 14px;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .stat-tile:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,.1); }
+  .stat-tile .ic {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--primary-glow); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+  }
+  .stat-tile .ic.green   { background: rgba(16,185,129,.15);  color: #10b981; }
+  .stat-tile .ic.amber   { background: rgba(245,158,11,.15);  color: #f59e0b; }
+  .stat-tile .ic.violet  { background: rgba(139,92,246,.15);  color: #8b5cf6; }
+  .stat-tile .val {
+    font-size: 1.55rem; font-weight: 700; color: var(--text); line-height: 1;
+  }
+  .stat-tile .lbl {
+    font-size: .76rem; color: var(--text2);
+    text-transform: uppercase; letter-spacing: .05em; font-weight: 600;
+    margin-top: 4px;
+  }
+
+  /* ── Section headings ────────────────────────────────────────────── */
+  .section-h {
+    font-size: 1.35rem; font-weight: 700; color: var(--text);
+    margin: 0 0 8px;
+  }
+  .section-sub {
+    font-size: .92rem; color: var(--text2);
+    margin: 0 0 22px;
+  }
+
+  /* ── Feature cards ───────────────────────────────────────────────── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+    margin-bottom: 36px;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--card-shadow);
+    transition: transform .2s, box-shadow .2s;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .feature-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,.1);
+  }
+  .feature-card .f-ic {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: var(--primary-glow); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; margin-bottom: 6px;
+  }
+  .feature-card.green   .f-ic { background: rgba(16,185,129,.15);  color: #10b981; }
+  .feature-card.amber   .f-ic { background: rgba(245,158,11,.15);  color: #f59e0b; }
+  .feature-card.violet  .f-ic { background: rgba(139,92,246,.15);  color: #8b5cf6; }
+  .feature-card.pink    .f-ic { background: rgba(236,72,153,.15);  color: #ec4899; }
+
+  .feature-card h3 {
+    font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 0;
+  }
+  .feature-card p {
+    font-size: .88rem; color: var(--text2); line-height: 1.55; margin: 0;
+  }
+
+  /* ── Quick actions bar ───────────────────────────────────────────── */
+  .quick-actions {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 26px 28px;
+    box-shadow: var(--card-shadow);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 18px; flex-wrap: wrap;
+  }
+  .quick-actions .qa-text h4 {
+    font-size: 1.1rem; font-weight: 700; color: var(--text); margin: 0 0 4px;
+  }
+  .quick-actions .qa-text p {
+    font-size: .88rem; color: var(--text2); margin: 0;
+  }
+  .qa-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #fff; padding: 12px 24px;
+    border-radius: 12px; text-decoration: none;
+    font-weight: 600; font-size: .92rem;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all .2s; border: none;
+  }
+  .qa-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37,99,235,.35);
+    color: #fff;
+  }
+
+  /* Mobile tweaks */
+  @media (max-width: 640px) {
+    .hero { padding: 36px 24px; }
+    .hero h1 { font-size: 1.7rem; }
+    .hero p { font-size: .92rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══ HERO ══════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-greeting">
+      <i class="bi bi-stars me-1"></i>Welcome back{% if user.first_name %}, {{ user.first_name }}{% endif %}
+    </div>
+    <h1>Your files, <span class="accent">encrypted</span> and ready.</h1>
+    <p>
+      SecuStore protects every file with AES-256 encryption, HMAC integrity verification,
+      and a tamper-evident blockchain audit trail. Upload, store, and share with confidence.
+    </p>
+    <div class="hero-actions">
+      <a href="{% url 'files:upload' %}" class="hero-btn">
+        <i class="bi bi-cloud-upload"></i> Upload a File
+      </a>
+      <a href="{% url 'files:file_management' %}" class="hero-btn ghost">
+        <i class="bi bi-folder2-open"></i> Browse My Files
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ STATS ROW ════════════════════════════════════════════════════ -->
+<div class="stats-grid">
+  <div class="stat-tile">
+    <div class="ic"><i class="bi bi-files"></i></div>
+    <div>
+      <div class="val">{{ user_total_files|default:0 }}</div>
+      <div class="lbl">Total Files</div>
+    </div>
+  </div>
+  <div class="stat-tile">
+    <div class="ic green"><i class="bi bi-hdd"></i></div>
+    <div>
+      <div class="val">{{ user_storage_used|default:"0" }} <small style="font-size:.7em;color:var(--text2);font-weight:500;">MB</small></div>
+      <div class="lbl">Storage Used</div>
+    </div>
+  </div>
+  <div class="stat-tile">
+    <div class="ic amber"><i class="bi bi-shield-check"></i></div>
+    <div>
+      <div class="val">AES-256</div>
+      <div class="lbl">Encryption</div>
+    </div>
+  </div>
+  <div class="stat-tile">
+    <div class="ic violet"><i class="bi bi-link-45deg"></i></div>
+    <div>
+      <div class="val">Blockchain</div>
+      <div class="lbl">Audit Trail</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FEATURES ═════════════════════════════════════════════════════ -->
+<h2 class="section-h">Why SecuStore</h2>
+<p class="section-sub">Four pillars protect every file you upload.</p>
+
+<div class="feature-grid">
+  <div class="feature-card">
+    <div class="f-ic"><i class="bi bi-shield-lock"></i></div>
+    <h3>End-to-End Encryption</h3>
+    <p>Every file is encrypted with AES-256-CFB using a unique key. We never store plaintext on disk.</p>
+  </div>
+  <div class="feature-card green">
+    <div class="f-ic"><i class="bi bi-fingerprint"></i></div>
+    <h3>HMAC Integrity</h3>
+    <p>HMAC-SHA256 is verified before every download. Any tampering returns 403 — guaranteed.</p>
+  </div>
+  <div class="feature-card amber">
+    <div class="f-ic"><i class="bi bi-bug"></i></div>
+    <h3>Malware Scanning</h3>
+    <p>ClamAV scans every upload. Dangerous file types are blocked at extension and magic-byte level.</p>
+  </div>
+  <div class="feature-card violet">
+    <div class="f-ic"><i class="bi bi-link-45deg"></i></div>
+    <h3>Blockchain Audit</h3>
+    <p>Uploads, downloads, and deletions are recorded in a SHA-256 ledger that can't be silently rewritten.</p>
+  </div>
+</div>
+
+<!-- ══ QUICK ACTIONS ════════════════════════════════════════════════ -->
+<div class="quick-actions">
+  <div class="qa-text">
+    <h4><i class="bi bi-cloud-upload me-2" style="color:var(--primary)"></i>Ready to add a file?</h4>
+    <p>Drag &amp; drop, set permissions, and let SecuStore do the rest.</p>
+  </div>
+  <a href="{% url 'files:upload' %}" class="qa-btn">
+    Start Uploading <i class="bi bi-arrow-right"></i>
+  </a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            text-align: left;  /* Align text to the left */
+            margin-top: 50px;  /* Space from navbar */
+            padding-left: 0%; /* Padding from the left */
+        }
+        .fixed {
+            font-weight: bold;
+            font-size: 60px;  /* Increase font size */
+        }
+        .dynamic {
+            font-weight: normal;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            font-size: 60px; 
+        }
+        .description {
+            max-width: 600px;  /* Set a maximum width */
+            margin: 20px 0;    /* Remove automatic horizontal margins for left alignment */
+            font-size: 20px;    /* Keep your desired font size */
+            line-height: 1.5;   /* Add space between lines */
+        }
+
+       
+        .footer-images img {
+        width: 100px; 
+        height: 100px; 
+        margin: 0 180px; /* Adjust margin for more space */
+    }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="col-6 col-md-6">
+            <div class="fixed">One storage for all</div>
+            <div class="dynamic" id="dynamic-text"></div>
+            <div class="description">
+                Meet the only safe and secure file storage solution that makes managing your files a breeze!<br>
+                With cutting-edge encryption, your documents, cherished memories, and ideas are protected and ready for easy access anytime, anywhere.<br>
+                Collaborate effortlessly with others and enjoy peace of mind knowing your data is secure.<br>
+                It’s time to simplify your storage experience!<br>
+            </div>
+        </div>
+        <div class="col-6 col-md-6">
+            <img src="{% static 'image/poster2.png' %}" alt="" class="img-fluid" style="max-width: 100%;">
+        </div>
+        <div class="container text-center mt-4">
+            <div class="row">
+                <div class="col-4">
+                    <img src="{% static 'image/1.png' %}" alt="Image 1" class="img-fluid">
+                   <strong><p>Things you like, together</p></strong><p>Access your favorite cloud storage accounts across all your devices. One app, one search - for all your files.</p>
+                </div>
+                <div class="col-4">
+                    <img src="{% static 'image/2.png' %}" alt="Image 2" class="img-fluid">
+                    <strong><p>Work and collaborate remotely</p></strong><p>Create, view, or edit your files online and collaborate together.</p>
+                </div>
+                <div class="col-4">
+                    <img src="{% static 'image/3.png' %}" alt="Image 3" class="img-fluid">
+                    <strong><p>Simple and secure file sharing</p></strong><p>Send and receive files using secure, expiring links, or use permissions to share files with other users.</p>
+                </div>
+            </div>
+        </div>
+        
+</div>
+
+</div>
+
+
+
+
+    </div>
+</div>
+
+<script>
+    const phrases = [
+        "documents",
+        "spreadsheets",
+        "ideas",
+        "notes",
+        "collaborators",
+        "memories",
+        "photos",
+        "projects"
+    ];
+    const colors = [
+    "#007bff", // Blue
+    "#00aaff", // Lighter Blue
+    "#ffc107", // Yellow
+    "#ffcc00", // Darker Yellow
+    "#ff5722", // Orange
+    "#ff9800", // Lighter Orange
+    "#4caf50", // Green
+    "#81c784"  // Light Green
+];
+    let currentIndex = 0;
+
+    function updateText() {
+        const dynamicTextElement = document.getElementById('dynamic-text');
+        dynamicTextElement.style.opacity = 0; // Fade out
+
+        setTimeout(() => {
+            dynamicTextElement.textContent = phrases[currentIndex];
+            dynamicTextElement.style.color = colors[currentIndex];
+            dynamicTextElement.style.opacity = 1; // Fade in
+        }, 500); // Match this with the transition duration
+
+        currentIndex = (currentIndex + 1) % phrases.length; // Loop through phrases
+    }
+
+    setInterval(updateText, 2000); // Change every 2 seconds
+    updateText(); // Initial call
+</script>
+
+</body>
+{% endblock %}
+{% include "footer.html" %}
+
+
+
+
+
+

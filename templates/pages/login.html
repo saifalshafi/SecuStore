@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Login — SecuStore{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { overflow: hidden; }
+  .login-wrap {
+    min-height: calc(100vh - 62px); display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .login-card {
+    width: 100%; max-width: 420px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.12);
+    overflow: hidden; animation: cardIn .4s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes cardIn { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+  .login-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    padding: 32px 32px 28px; text-align: center; color: #fff;
+  }
+  .login-header img { width: 52px; border-radius: 14px; margin-bottom: 12px; }
+  .login-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
+  .login-header p { font-size: .85rem; opacity: .75; margin: 4px 0 0; }
+  .login-body { padding: 28px 32px 32px; }
+  .btn-login {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border: none; width: 100%; padding: 12px; border-radius: 12px;
+    font-weight: 600; font-size: .95rem; color: #fff;
+    transition: all .2s; margin-top: 6px;
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,.35); color: #fff; }
+  .divider { display: flex; align-items: center; gap: 10px; margin: 18px 0; color: var(--text2); font-size: .8rem; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-header">
+      <img src="{% static 'image/logo3.png' %}" alt="SecuStore">
+      <h1>Welcome back</h1>
+      <p>Sign in to your secure vault</p>
+    </div>
+    <div class="login-body">
+      <form method="POST" action="{% url 'login' %}" id="loginForm">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <div style="position:relative;">
+            <i class="bi bi-person" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text2);"></i>
+            <input type="text" class="form-control" name="username" required autocomplete="username"
+                   style="padding-left:36px;" placeholder="your_username">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <div style="position:relative;">
+            <i class="bi bi-lock" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text2);"></i>
+            <input type="password" class="form-control" name="password" id="pwdInput" required autocomplete="current-password"
+                   style="padding-left:36px;padding-right:40px;" placeholder="••••••••••">
+            <button type="button" onclick="togglePwd()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;">
+              <i class="bi bi-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--text2);cursor:pointer;">
+            <input type="checkbox" name="remember_me" style="accent-color:var(--primary);"> Remember me
+          </label>
+          <a href="{% url 'password_reset_request' %}" style="font-size:.85rem;">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn-login" onclick="showLoading('Authenticating…')">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+        </button>
+      </form>
+      <div class="divider">or</div>
+      <p class="text-center" style="font-size:.875rem;color:var(--text2);margin:0;">
+        Don't have an account? <a href="{% url 'signup' %}" style="font-weight:600;">Create one</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePwd() {
+  const i = document.getElementById('pwdInput');
+  const e = document.getElementById('eyeIcon');
+  if (i.type === 'password') { i.type = 'text'; e.className = 'bi bi-eye-slash'; }
+  else { i.type = 'password'; e.className = 'bi bi-eye'; }
+}
+</script>
+{% endblock %}

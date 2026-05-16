@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Request OTP · SecuStore{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { overflow: hidden; }
+  .otp-wrap {
+    min-height: calc(100vh - 62px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .otp-card {
+    width: 100%; max-width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.12);
+    overflow: hidden;
+    animation: cardIn .4s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes cardIn {
+    from { opacity:0; transform:translateY(24px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .otp-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    padding: 32px 32px 28px;
+    text-align: center;
+    color: #fff;
+  }
+  .otp-header .icon-wrap {
+    width: 58px; height: 58px;
+    background: rgba(255,255,255,.15);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    margin: 0 auto 14px;
+  }
+  .otp-header h1 { font-size: 1.35rem; font-weight: 700; margin: 0 0 5px; }
+  .otp-header p  { font-size: .84rem; color: rgba(255,255,255,.65); margin: 0; }
+
+  .otp-body { padding: 28px 32px 32px; }
+
+  .btn-send {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border: none; width: 100%; padding: 12px;
+    border-radius: 12px; font-weight: 600;
+    font-size: .95rem; color: #fff;
+    transition: all .2s; margin-top: 6px;
+  }
+  .btn-send:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37,99,235,.35);
+    color: #fff;
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 10px;
+    margin: 18px 0; color: var(--text2); font-size: .8rem;
+  }
+  .divider::before, .divider::after {
+    content:''; flex:1; height:1px; background: var(--border);
+  }
+
+  .info-box {
+    background: var(--primary-glow);
+    border: 1px solid rgba(59,130,246,.25);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: .8rem; color: var(--text2);
+    display: flex; gap: 8px; align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .info-box i { color: var(--primary); flex-shrink: 0; margin-top: 1px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="otp-wrap">
+  <div class="otp-card">
+
+    <div class="otp-header">
+      <div class="icon-wrap">
+        <i class="bi bi-envelope-at"></i>
+      </div>
+      <h1>Request a New OTP</h1>
+      <p>Enter your email and we'll send you a one-time code</p>
+    </div>
+
+    <div class="otp-body">
+
+      <div class="info-box">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>The OTP will be valid for <strong>5 minutes</strong>. Check your inbox (and spam folder) after submitting.</span>
+      </div>
+
+      <form method="POST" action="{% url 'request_otp' %}" id="otpForm">
+        {% csrf_token %}
+
+        <div class="mb-4">
+          <label class="form-label">Email Address</label>
+          <div style="position:relative;">
+            <i class="bi bi-envelope" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text2);"></i>
+            <input type="email" class="form-control" name="email" required
+                   style="padding-left:36px;"
+                   placeholder="your@email.com" autocomplete="email">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-send"
+                onclick="showLoading('Sending OTP to your email…')">
+          <i class="bi bi-send me-2"></i>Send OTP
+        </button>
+      </form>
+
+      <div class="divider">or</div>
+
+      <div class="text-center" style="font-size:.875rem;color:var(--text2);">
+        <a href="{% url 'login' %}" style="font-weight:600;">
+          <i class="bi bi-arrow-left me-1"></i>Back to Login
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

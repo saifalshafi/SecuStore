@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5" style="max-width:1000px;">
+  <h2 class="text-center mb-4">Features</h2>
+
+  <div class="row g-3">
+
+    <div class="col-md-6">
+      <div class="card shadow p-4 text-center feature-card">
+        <h5><span class="feature-icon">🔐</span>Encryption</h5>
+        <div class="feature-description">
+          Files are encrypted using secure cryptography before being stored to ensure data protection.
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow p-4 text-center feature-card">
+        <h5><span class="feature-icon">🦠</span>Malware Scan</h5>
+        <div class="feature-description">
+          Uploaded files are optionally scanned to detect malicious content before storage.
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow p-4 text-center feature-card">
+        <h5><span class="feature-icon">🔑</span>OTP / 2FA</h5>
+        <div class="feature-description">
+          Extra security layer using One-Time Password verification during login.
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow p-4 text-center feature-card">
+        <h5><span class="feature-icon">📜</span>Audit Log</h5>
+        <div class="feature-description">
+          Tracks uploads, downloads, and sharing activities for better monitoring and accountability.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="text-center">
+    <a href="{% url 'index' %}" class="btn btn-warning mt-4 px-4">Back to Home</a>
+  </div>
+</div>
+{% endblock %}

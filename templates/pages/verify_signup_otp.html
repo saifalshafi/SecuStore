@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Verify Email — SecuStore{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { overflow-x: hidden; }
+
+  .otp-wrap {
+    min-height: calc(100vh - 62px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .otp-card {
+    width: 100%;
+    max-width: 460px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.12);
+    overflow: hidden;
+    animation: cardIn .4s cubic-bezier(.4,0,.2,1);
+  }
+  [data-theme="dark"] .otp-card {
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  @keyframes cardIn { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+
+  .otp-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    padding: 32px 32px 26px;
+    text-align: center;
+    color: #fff;
+  }
+  .otp-header .step-pill {
+    display: inline-block;
+    background: rgba(255,255,255,.18);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 600;
+    padding: 4px 11px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+    letter-spacing: .04em;
+  }
+  .otp-header .ic { font-size: 2.2rem; margin-bottom: 6px; opacity: .95; }
+  .otp-header h2 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+  .otp-header p  { font-size: .85rem; opacity: .78; margin: 6px 0 0; }
+
+  .otp-body { padding: 28px 32px 32px; }
+
+  .step-track {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 22px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .step-dot {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-dot.active   { background: var(--primary); color: #fff; }
+  .step-dot.done     { background: var(--success); color: #fff; }
+  .step-dot.inactive { background: var(--border);  color: var(--text2); }
+  .step-line { flex: 1; height: 2px; background: var(--border); border-radius: 2px; }
+  .step-line.done { background: var(--success); }
+  .step-label { font-size: .76rem; color: var(--text2); font-weight: 500; }
+  .step-label.active { color: var(--text); font-weight: 600; }
+
+  .otp-input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    text-align: center;
+    font-size: 1.4rem;
+    letter-spacing: .3em;
+    font-weight: 700;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+  }
+  .otp-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-glow);
+    outline: none;
+  }
+
+  .btn-primary-grad {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border: none; width: 100%; padding: 12px;
+    border-radius: 12px; font-weight: 600; font-size: .95rem;
+    color: #fff; transition: all .2s; margin-top: 14px;
+  }
+  .btn-primary-grad:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37,99,235,.35);
+    color: #fff;
+  }
+
+  .otp-help {
+    text-align: center;
+    color: var(--text2);
+    font-size: .85rem;
+    margin-top: 16px;
+  }
+  .otp-help a, .otp-help button.link-btn {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  .otp-help a:hover, .otp-help button.link-btn:hover { color: var(--primary-dark); }
+  .otp-expire {
+    text-align: center;
+    margin-top: 18px;
+    font-size: .78rem;
+    color: var(--text2);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="otp-wrap">
+  <div class="otp-card">
+    <div class="otp-header">
+      <span class="step-pill">STEP 2 OF 3</span>
+      <div class="ic">📧</div>
+      <h2>Verify Your Email</h2>
+      <p>Enter the 6-digit code we just sent</p>
+    </div>
+
+    <div class="otp-body">
+
+      <!-- Progress track -->
+      <div class="step-track">
+        <div class="step-dot done"><i class="bi bi-check" style="font-size:.95rem;"></i></div>
+        <span class="step-label">Email</span>
+        <div class="step-line done"></div>
+        <div class="step-dot active">2</div>
+        <span class="step-label active">Verify</span>
+        <div class="step-line"></div>
+        <div class="step-dot inactive">3</div>
+        <span class="step-label">Details</span>
+      </div>
+
+      <p style="text-align:center;color:var(--text2);font-size:.92rem;margin-bottom:18px;">
+        We sent a 6-digit verification code to
+        <br><strong style="color:var(--text);">{{ email }}</strong>
+      </p>
+
+      <form method="POST" novalidate>
+        {% csrf_token %}
+        <input type="text" name="otp" class="otp-input" maxlength="6" inputmode="numeric"
+               placeholder="• • • • • •" required autofocus>
+        <button type="submit" class="btn-primary-grad">
+          <i class="bi bi-shield-check me-2"></i>Verify Email
+        </button>
+      </form>
+
+      <div class="otp-help">
+        Didn't receive the code?
+        <form method="POST" action="{% url 'resend_signup_otp' %}" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="link-btn">Resend</button>
+        </form>
+        &nbsp;·&nbsp;
+        <a href="{% url 'signup' %}">Change email</a>
+      </div>
+
+      <div class="otp-expire">
+        The code expires in 5 minutes.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

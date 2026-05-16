@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}{{ target_user.username }}'s Files — SecuStore Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .section-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--card-shadow); }
+  .section-card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .section-card-header h5 { font-weight:700; margin:0; color:var(--text); font-size:1rem; }
+  .status-pending  { background:rgba(245,158,11,.15); color:#d97706; }
+  .status-approved { background:rgba(16,185,129,.15);  color:#10b981; }
+  .status-rejected { background:rgba(239,68,68,.15);   color:#ef4444; }
+  .user-avatar { width:48px; height:48px; border-radius:50%; background:var(--primary-glow); display:flex; align-items:center; justify-content:center; color:var(--primary); font-weight:700; font-size:1.2rem; flex-shrink:0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="page-title mb-0"><i class="bi bi-folder2 me-2" style="color:var(--primary)"></i>User Files</h1>
+  <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+</div>
+
+<!-- User Info -->
+<div class="section-card p-4 mb-4">
+  <div class="d-flex align-items-center gap-3">
+    <div class="user-avatar">{{ target_user.username|first|upper }}</div>
+    <div>
+      <div style="font-weight:700;font-size:1.1rem;color:var(--text);">{{ target_user.username }}</div>
+      <div style="color:var(--text2);font-size:.85rem;">{{ target_user.email }}</div>
+      <div style="color:var(--text2);font-size:.78rem;">Joined: {{ target_user.date_joined|date:"M d, Y" }}</div>
+    </div>
+    <div class="ms-auto">
+      {% if target_user.is_active %}
+      <span class="badge" style="background:rgba(16,185,129,.15);color:#10b981;">● Active</span>
+      {% else %}
+      <span class="badge" style="background:rgba(100,116,139,.15);color:#64748b;">● Inactive</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Files Table -->
+<div class="section-card">
+  <div class="section-card-header">
+    <h5><i class="bi bi-files me-2"></i>Files ({{ user_files|length }})</h5>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:.85rem;">
+      <thead style="color:var(--text2);border-bottom:1px solid var(--border);">
+        <tr>
+          <th class="px-4 py-3">File Name</th>
+          <th>Size</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Uploaded</th>
+          <th>Expires</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in user_files %}
+        <tr>
+          <td class="px-4" style="font-weight:600;color:var(--text);">{{ f.file_metadata.name|default:"—" }}</td>
+          <td style="color:var(--text2);">{{ f.file_metadata.size|filesizeformat }}</td>
+          <td style="color:var(--text2);">{{ f.file_metadata.file_type|default:"—" }}</td>
+          <td>
+            {% if f.status == 'pending' %}<span class="badge status-pending">⏳ Pending</span>
+            {% elif f.status == 'approved' %}<span class="badge status-approved">✓ Approved</span>
+            {% elif f.status == 'rejected' %}<span class="badge status-rejected">✗ Rejected</span>{% endif %}
+          </td>
+          <td style="color:var(--text2);">{{ f.uploaded_at|date:"M d, Y H:i" }}</td>
+          <td style="color:var(--text2);">{{ f.expiration_date|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center py-5" style="color:var(--text2);">No files uploaded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

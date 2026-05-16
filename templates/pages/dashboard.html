@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — SecuStore{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stat-card { display:flex; align-items:center; gap:16px; }
+  .stat-card .s-icon { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+  .s-blue  { background:rgba(59,130,246,.15); color:#3b82f6; }
+  .s-green { background:rgba(16,185,129,.15); color:#10b981; }
+  .s-amber { background:rgba(245,158,11,.15); color:#f59e0b; }
+  .s-red   { background:rgba(239,68,68,.15);  color:#ef4444; }
+  .s-purple{ background:rgba(139,92,246,.15); color:#8b5cf6; }
+  .s-orange{ background:rgba(249,115,22,.15); color:#f97316; }
+
+  .section-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--card-shadow); }
+  .section-card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .section-card-header h5 { font-weight:700; margin:0; color:var(--text); font-size:1rem; }
+  .section-card-body { padding:20px; }
+
+  .user-avatar { width:36px; height:36px; border-radius:50%; background:var(--primary-glow); display:flex; align-items:center; justify-content:center; color:var(--primary); font-weight:700; font-size:.9rem; flex-shrink:0; }
+  .block-row { font-size:.82rem; display:grid; grid-template-columns:40px 80px 1fr 120px auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .block-row:last-child { border-bottom:none; }
+  .activity-item { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); align-items:flex-start; }
+  .activity-item:last-child { border-bottom:none; }
+  .activity-dot { width:8px; height:8px; border-radius:50%; background:var(--primary); margin-top:5px; flex-shrink:0; }
+
+  .admin-nav-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; display:flex; align-items:center; gap:14px; text-decoration:none; color:var(--text); transition:all .2s; }
+  .admin-nav-card:hover { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); transform:translateY(-2px); color:var(--primary); }
+  .admin-nav-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; }
+  .pending-badge { background:rgba(245,158,11,.2); color:#d97706; border-radius:20px; padding:2px 10px; font-size:.75rem; font-weight:700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="page-title mb-0"><i class="bi bi-speedometer2 me-2" style="color:var(--primary)"></i>Admin Dashboard</h1>
+  <a href="/admin/" class="btn btn-outline-secondary btn-sm"><i class="bi bi-gear me-1"></i>Django Admin</a>
+</div>
+
+<!-- ── Quick Nav ── -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <a href="{% url 'files:admin_all_files' %}" class="admin-nav-card">
+      <div class="admin-nav-icon s-amber"><i class="bi bi-folder2"></i></div>
+      <div>
+        <div style="font-weight:700;font-size:.95rem;">File Review</div>
+        <div style="font-size:.78rem;color:var(--text2);">
+          {% if pending_files > 0 %}<span class="pending-badge">{{ pending_files }} pending</span>{% else %}All reviewed{% endif %}
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{% url 'admin_users_list' %}" class="admin-nav-card">
+      <div class="admin-nav-icon s-blue"><i class="bi bi-people"></i></div>
+      <div>
+        <div style="font-weight:700;font-size:.95rem;">Manage Users</div>
+        <div style="font-size:.78rem;color:var(--text2);">Activate · Deactivate · Delete</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{% url 'admin_activity_log' %}" class="admin-nav-card">
+      <div class="admin-nav-icon s-purple"><i class="bi bi-journal-text"></i></div>
+      <div>
+        <div style="font-weight:700;font-size:.95rem;">Activity Log</div>
+        <div style="font-size:.78rem;color:var(--text2);">Full searchable log</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{% url 'files:admin_blockchain' %}" class="admin-nav-card">
+      <div class="admin-nav-icon s-green"><i class="bi bi-link-45deg"></i></div>
+      <div>
+        <div style="font-weight:700;font-size:.95rem;">Verify Chain</div>
+        <div style="font-size:.78rem;color:var(--text2);">Blockchain integrity</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- ── Stat Cards ── -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card section-card p-3">
+      <div class="s-icon s-blue"><i class="bi bi-people"></i></div>
+      <div><div style="font-size:2rem;font-weight:700;color:var(--text);">{{ total_users }}</div><div style="font-size:.78rem;color:var(--text2);">Total Users</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card section-card p-3">
+      <div class="s-icon s-green"><i class="bi bi-files"></i></div>
+      <div><div style="font-size:2rem;font-weight:700;color:var(--text);">{{ total_files }}</div><div style="font-size:.78rem;color:var(--text2);">Total Files</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card section-card p-3">
+      <div class="s-icon s-amber"><i class="bi bi-hourglass-split"></i></div>
+      <div><div style="font-size:2rem;font-weight:700;color:var(--text);">{{ pending_files }}</div><div style="font-size:.78rem;color:var(--text2);">Pending Review</div></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card section-card p-3">
+      <div class="s-icon s-red"><i class="bi bi-shield-lock"></i></div>
+      <div><div style="font-size:2rem;font-weight:700;color:var(--text);">{{ staff_users }}</div><div style="font-size:.78rem;color:var(--text2);">Staff Members</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Activity Chart + Recent Actions ── -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-7">
+    <div class="section-card">
+      <div class="section-card-header"><h5><i class="bi bi-bar-chart me-2"></i>Activity Overview</h5></div>
+      <div class="section-card-body"><canvas id="actChart" height="200"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="section-card h-100">
+      <div class="section-card-header">
+        <h5><i class="bi bi-activity me-2"></i>Recent Activity</h5>
+        <a href="{% url 'admin_activity_log' %}" class="btn btn-sm btn-outline-secondary" style="font-size:.78rem;">View All</a>
+      </div>
+      <div class="section-card-body" style="overflow-y:auto;max-height:300px;">
+        {% for a in recent_actions %}
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:.83rem;color:var(--text);">{{ a.action }}</div>
+            <div style="font-size:.74rem;color:var(--text2);">{{ a.timestamp|date:"M d H:i" }} {% if a.ip_address %}· {{ a.ip_address }}{% endif %}</div>
+          </div>
+        </div>
+        {% empty %}<p style="color:var(--text2);text-align:center;margin:20px 0;">No recent activity.</p>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Users Table ── -->
+<div class="section-card mb-4">
+  <div class="section-card-header">
+    <h5><i class="bi bi-people me-2"></i>All Users</h5>
+    <div class="d-flex gap-2 align-items-center">
+      <input type="text" class="form-control" id="userSearch" placeholder="Search…" style="max-width:180px;font-size:.85rem;padding:5px 10px;">
+      <a href="{% url 'admin_users_list' %}" class="btn btn-sm btn-outline-primary" style="font-size:.78rem;white-space:nowrap;">Full Management</a>
+    </div>
+  </div>
+  <div class="section-card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" id="userTable">
+        <thead style="font-size:.8rem;color:var(--text2);border-bottom:1px solid var(--border);">
+          <tr><th class="px-4 py-3">User</th><th>Joined</th><th>Files</th><th>Storage</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for u in users_list %}
+          <tr data-username="{{ u.username|lower }}">
+            <td class="px-4">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="user-avatar">{{ u.username|first|upper }}</div>
+                <div>
+                  <div style="font-weight:600;font-size:.88rem;color:var(--text);">{{ u.username }} {% if u.is_staff %}<span class="badge" style="background:rgba(239,68,68,.15);color:#ef4444;font-size:.65em;">Staff</span>{% endif %}</div>
+                  <div style="font-size:.75rem;color:var(--text2);">{{ u.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:.82rem;color:var(--text2);">{{ u.date_joined|date:"M d, Y" }}</td>
+            <td><span class="badge" style="background:var(--primary-glow);color:var(--primary);">{{ u.file_count }}</span></td>
+            <td style="font-size:.82rem;">{{ u.total_size|default:0|filesizeformat }}</td>
+            <td>
+              {% if u.is_active %}<span class="badge" style="background:rgba(16,185,129,.15);color:#10b981;">● Active</span>
+              {% else %}<span class="badge" style="background:rgba(100,116,139,.15);color:#64748b;">● Inactive</span>{% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{% url 'user_files' u.id %}" class="btn btn-sm btn-outline-primary" style="font-size:.75rem;padding:3px 8px;" title="View Files"><i class="bi bi-folder2"></i></a>
+                {% if not u.is_staff %}
+                <form method="post" action="{% url 'admin_toggle_user' u.id %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}" style="font-size:.75rem;padding:3px 8px;" title="{% if u.is_active %}Deactivate{% else %}Activate{% endif %}">
+                    <i class="bi {% if u.is_active %}bi-pause-circle{% else %}bi-play-circle{% endif %}"></i>
+                  </button>
+                </form>
+                <form method="post" action="{% url 'admin_delete_user' u.id %}" style="display:inline;" onsubmit="return confirm('Delete {{ u.username }} and all their files? This cannot be undone.')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:.75rem;padding:3px 8px;" title="Delete Account"><i class="bi bi-trash"></i></button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── Blockchain ── -->
+<div class="section-card mb-4">
+  <div class="section-card-header">
+    <h5><i class="bi bi-link-45deg me-2"></i>Blockchain Audit Log</h5>
+    <a href="{% url 'files:admin_blockchain' %}" class="btn btn-sm btn-outline-success" style="font-size:.78rem;"><i class="bi bi-shield-check me-1"></i>Verify Chain</a>
+  </div>
+  <div class="section-card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.82rem;">
+        <thead style="color:var(--text2);border-bottom:1px solid var(--border);">
+          <tr><th class="px-4 py-3">#</th><th>Action</th><th>User</th><th>File</th><th>Time</th><th>Hash</th></tr>
+        </thead>
+        <tbody>
+          {% for b in recent_blocks %}
+          <tr>
+            <td class="px-4"><code>#{{ b.index }}</code></td>
+            <td>
+              {% if b.action == 'upload' %}<span class="badge" style="background:rgba(59,130,246,.15);color:#3b82f6;">upload</span>
+              {% elif b.action == 'download' %}<span class="badge" style="background:rgba(16,185,129,.15);color:#10b981;">download</span>
+              {% elif b.action == 'delete' or b.action == 'admin_delete' %}<span class="badge" style="background:rgba(239,68,68,.15);color:#ef4444;">{{ b.action }}</span>
+              {% elif b.action == 'approve' %}<span class="badge" style="background:rgba(16,185,129,.15);color:#10b981;">approve</span>
+              {% elif b.action == 'reject' %}<span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;">reject</span>
+              {% else %}<span class="badge" style="background:var(--surface2);color:var(--text2);">{{ b.action }}</span>{% endif %}
+            </td>
+            <td>{{ b.username }}</td>
+            <td style="color:var(--text2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ b.file_name|default:"—" }}</td>
+            <td style="color:var(--text2);">{{ b.timestamp|date:"M d H:i" }}</td>
+            <td><code style="font-size:.75em;">{{ b.block_hash|slice:":16" }}…</code></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
+const textColor = isDark ? '#94a3b8' : '#64748b';
+
+new Chart(document.getElementById('actChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Uploads','Downloads','Deletes','Logins','Logouts'],
+    datasets: [{
+      data: [{{ user_upload_count }},{{ user_download_count }},{{ user_delete_count }},{{ user_login_count }},{{ user_logout_count }}],
+      backgroundColor: ['#3b82f6','#10b981','#ef4444','#f59e0b','#8b5cf6'],
+      borderRadius: 8, borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: textColor } },
+      y: { grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 }, beginAtZero: true }
+    }
+  }
+});
+
+document.getElementById('userSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#userTable tbody tr').forEach(r => {
+    r.style.display = r.dataset.username.includes(q) ? '' : 'none';
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Upload — SecuStore{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Breadcrumb ── */
+  .crumb {
+    font-size: .82rem; color: var(--text2);
+    margin-bottom: 18px;
+  }
+  .crumb a { color: var(--text2); text-decoration: none; }
+  .crumb a:hover { color: var(--primary); }
+  .crumb .sep { margin: 0 6px; font-size: .7rem; opacity: .6; }
+
+  /* ── Page header ── */
+  .page-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap; margin-bottom: 22px;
+  }
+  .page-head h1 {
+    font-size: 1.7rem; font-weight: 700; color: var(--text); margin: 0;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .page-head h1 i { color: var(--primary); }
+  .page-head .info-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--primary-glow); color: var(--primary);
+    padding: 6px 12px; border-radius: 999px;
+    font-size: .78rem; font-weight: 600;
+  }
+
+  /* ── Upload card ── */
+  .upload-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: var(--card-shadow);
+  }
+
+  /* ── Drop Zone ── */
+  .drop-zone {
+    border: 2.5px dashed var(--border);
+    border-radius: 14px;
+    padding: 48px 30px;
+    text-align: center; cursor: pointer;
+    transition: all .25s;
+    background: var(--surface2);
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.dragging {
+    border-color: var(--primary);
+    background: var(--primary-glow);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px var(--primary-glow);
+  }
+  .drop-zone .dz-icon {
+    font-size: 2.8rem; color: var(--primary); opacity: .85;
+    margin-bottom: 4px;
+  }
+  .drop-zone .dz-title {
+    color: var(--text); font-size: 1.05rem; font-weight: 600;
+    margin-top: 8px;
+  }
+  .drop-zone .dz-text {
+    color: var(--text2); font-size: .85rem; margin-top: 4px;
+  }
+  .drop-zone .dz-text strong { color: var(--primary); }
+  .drop-zone .dz-hints {
+    font-size: .76rem; color: var(--text2); margin-top: 10px;
+    display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;
+  }
+  .drop-zone .dz-hints span {
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+
+  /* ── File chip ── */
+  .file-chip {
+    display: none; align-items: center; gap: 12px;
+    background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; margin-top: 14px;
+    animation: fadeUp .3s ease;
+  }
+  .file-chip.show { display: flex; }
+  .file-chip .fc-icon { font-size: 1.8rem; color: var(--primary); flex-shrink: 0; }
+  .file-chip .fc-info { flex: 1; min-width: 0; }
+  .file-chip .fc-name { font-weight: 600; color: var(--text); font-size: .9rem; }
+  .file-chip .fc-size { font-size: .78rem; color: var(--text2); margin-top: 2px; }
+  .file-chip .fc-status {
+    font-size: .72rem; padding: 3px 9px;
+    border-radius: 999px; font-weight: 600;
+  }
+  .file-chip .fc-status.auto    { background: rgba(16,185,129,.15);  color: #10b981; }
+  .file-chip .fc-status.review  { background: rgba(245,158,11,.15);  color: #d97706; }
+
+  /* ── Form section divider ── */
+  .form-divider {
+    margin: 24px 0 18px;
+    display: flex; align-items: center; gap: 10px;
+    color: var(--text2);
+    font-size: .72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+  .form-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* ── Preview modal ── */
+  #previewContent img, #previewContent embed { max-width: 100%; border-radius: 10px; }
+
+  /* ── Approval policy info card ── */
+  .policy-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: var(--card-shadow);
+    height: fit-content;
+  }
+  .policy-card h3 {
+    font-size: .92rem; font-weight: 700;
+    color: var(--text); margin: 0 0 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .policy-card h3 i { color: var(--primary); }
+  .policy-card .row-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .82rem;
+  }
+  .policy-card .row-item:last-child { border-bottom: none; }
+  .policy-card .row-item .badge-mini {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: .68rem; font-weight: 700;
+    padding: 3px 8px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: .04em;
+    flex-shrink: 0;
+  }
+  .policy-card .row-item .badge-mini.auto   { background: rgba(16,185,129,.15);  color: #10b981; }
+  .policy-card .row-item .badge-mini.review { background: rgba(245,158,11,.15);  color: #d97706; }
+  .policy-card .row-item .desc {
+    color: var(--text); flex: 1;
+  }
+  .policy-card .row-item .desc small { color: var(--text2); display: block; margin-top: 2px; }
+
+  /* ── Submit button ── */
+  .btn-submit {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border: none; width: 100%; padding: 13px;
+    border-radius: 12px; font-weight: 600; font-size: 1rem;
+    color: #fff; transition: all .2s; margin-top: 20px;
+  }
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37,99,235,.35);
+    color: #fff;
+  }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<nav class="crumb">
+  <a href="{% url 'intro' %}"><i class="bi bi-house-door me-1"></i>Home</a>
+  <span class="sep">›</span>
+  <span style="color:var(--text);">Upload File</span>
+</nav>
+
+<div class="page-head">
+  <h1><i class="bi bi-cloud-upload"></i>Upload File</h1>
+  <span class="info-tag"><i class="bi bi-shield-lock"></i>AES-256 Encrypted</span>
+</div>
+
+<div class="row g-4">
+
+  <!-- ══ LEFT: Upload Form ═════════════════════════════════════════ -->
+  <div class="col-lg-8">
+    <div class="upload-card">
+      <form method="POST" enctype="multipart/form-data" action="{% url 'files:upload' %}" id="uploadForm">
+        {% csrf_token %}
+
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="dropZone">
+          <div class="dz-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+          <div class="dz-title">Drop your file here</div>
+          <div class="dz-text">or <strong>click to browse</strong></div>
+          <div class="dz-hints">
+            <span><i class="bi bi-hdd"></i> Max 50 MB</span>
+            <span><i class="bi bi-shield-x"></i> No executables</span>
+            <span><i class="bi bi-bug"></i> Scanned by ClamAV</span>
+          </div>
+          <input type="file" id="fileInput" name="file" required style="display:none;">
+        </div>
+
+        <!-- File chip preview -->
+        <div class="file-chip" id="fileChip">
+          <i class="bi bi-file-earmark fc-icon"></i>
+          <div class="fc-info">
+            <div class="fc-name" id="chipName">—</div>
+            <div class="fc-size" id="chipSize">—</div>
+          </div>
+          <span class="fc-status" id="chipStatus"></span>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="previewBtn" style="display:none;">
+            <i class="bi bi-eye"></i> Preview
+          </button>
+        </div>
+
+        <!-- Details -->
+        <div class="form-divider">File Details</div>
+        <div>
+          <label class="form-label">Description <span class="text-danger">*</span></label>
+          <textarea class="form-control" name="description" rows="2" required
+                    placeholder="What is this file?"></textarea>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="col-md-6">
+            <label class="form-label">Tags</label>
+            <input type="text" class="form-control" name="tags" placeholder="e.g. report, 2025">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Category</label>
+            <input type="text" class="form-control" name="category" placeholder="e.g. Documents">
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="form-divider">Settings</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Permissions</label>
+            <select class="form-select" name="permissions">
+              <option value="private">🔒 Private — Only you</option>
+              <option value="public">🌐 Public — Visible to others</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Expiration date <small style="color:var(--text2);font-weight:400;">— optional</small></label>
+            <input type="date" class="form-control" name="expiration_date">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="uploadBtn">
+          <i class="bi bi-lock me-2"></i>Upload &amp; Encrypt
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT: Approval Policy ════════════════════════════════════ -->
+  <div class="col-lg-4">
+    <div class="policy-card">
+      <h3><i class="bi bi-info-circle"></i>Approval Policy</h3>
+      <div class="row-item">
+        <span class="badge-mini auto"><i class="bi bi-check-circle"></i> Auto</span>
+        <div class="desc">
+          Small files (≤ 10 MB)
+          <small>Approved instantly — ready to download.</small>
+        </div>
+      </div>
+      <div class="row-item">
+        <span class="badge-mini review"><i class="bi bi-hourglass-split"></i> Review</span>
+        <div class="desc">
+          Larger files (&gt; 10 MB)
+          <small>Need admin approval before download.</small>
+        </div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:12px;margin-top:14px;font-size:.78rem;color:var(--text2);line-height:1.5;">
+        <i class="bi bi-shield-lock-fill me-1" style="color:var(--primary);"></i>
+        All files are encrypted with AES-256 before they touch the disk —
+        regardless of approval status.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Preview Modal ── -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="previewTitle">File Preview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="previewContent" style="min-height:200px;display:flex;align-items:center;justify-content:center;"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── Drag & Drop Upload Zone ── */
+const dropZone   = document.getElementById('dropZone');
+const fileInput  = document.getElementById('fileInput');
+const fileChip   = document.getElementById('fileChip');
+const chipName   = document.getElementById('chipName');
+const chipSize   = document.getElementById('chipSize');
+const chipStatus = document.getElementById('chipStatus');
+const previewBtn = document.getElementById('previewBtn');
+
+const AUTO_APPROVE_BYTES = 10 * 1024 * 1024; // keep in sync with settings.AUTO_APPROVE_SIZE_MB
+
+let currentFile = null;
+
+dropZone.addEventListener('click', () => fileInput.click());
+['dragenter','dragover'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('dragging'); }));
+['dragleave','drop'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.remove('dragging'); }));
+dropZone.addEventListener('drop', ev => { fileInput.files = ev.dataTransfer.files; selectFile(ev.dataTransfer.files[0]); });
+fileInput.addEventListener('change', () => selectFile(fileInput.files[0]));
+
+function fmtSize(b) {
+  return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(2)+' MB';
+}
+
+function selectFile(file) {
+  if (!file) return;
+  currentFile = file;
+  chipName.textContent = file.name;
+  chipSize.textContent = fmtSize(file.size);
+  fileChip.classList.add('show');
+
+  // Show whether this file will be auto-approved or needs review
+  if (file.size <= AUTO_APPROVE_BYTES) {
+    chipStatus.className = 'fc-status auto';
+    chipStatus.innerHTML = '<i class="bi bi-check-circle"></i> Auto-approve';
+  } else {
+    chipStatus.className = 'fc-status review';
+    chipStatus.innerHTML = '<i class="bi bi-hourglass-split"></i> Needs review';
+  }
+
+  const previewable = file.type.startsWith('image/') || file.type === 'application/pdf';
+  previewBtn.style.display = previewable ? 'inline-flex' : 'none';
+
+  const icon = fileChip.querySelector('.fc-icon');
+  if (file.type.startsWith('image/')) icon.className='bi bi-file-earmark-image fc-icon';
+  else if (file.type==='application/pdf') icon.className='bi bi-file-earmark-pdf fc-icon';
+  else if (file.name.match(/\.(zip|rar|7z|gz|tar)$/i)) icon.className='bi bi-file-earmark-zip fc-icon';
+  else if (file.name.match(/\.(doc|docx)$/i)) icon.className='bi bi-file-earmark-word fc-icon';
+  else if (file.name.match(/\.(xls|xlsx|csv)$/i)) icon.className='bi bi-file-earmark-spreadsheet fc-icon';
+  else icon.className='bi bi-file-earmark fc-icon';
+}
+
+/* ── File Preview ── */
+previewBtn.addEventListener('click', () => {
+  if (!currentFile) return;
+  const url = URL.createObjectURL(currentFile);
+  const content = document.getElementById('previewContent');
+  document.getElementById('previewTitle').textContent = currentFile.name;
+  if (currentFile.type.startsWith('image/')) {
+    content.innerHTML = `<img src="${url}" style="max-height:70vh;border-radius:10px;">`;
+  } else if (currentFile.type === 'application/pdf') {
+    content.innerHTML = `<embed src="${url}" type="application/pdf" width="100%" height="500px" style="border-radius:10px;">`;
+  }
+  new bootstrap.Modal(document.getElementById('previewModal')).show();
+});
+
+/* ── Upload Loading Spinner ── */
+document.getElementById('uploadForm').addEventListener('submit', function() {
+  if (!fileInput.files.length) return;
+  showLoading('Encrypting & uploading…');
+  document.getElementById('uploadBtn').disabled = true;
+});
+</script>
+{% endblock %}

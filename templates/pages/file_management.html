@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}My Files — SecuStore{% endblock %}
+
+{% if quota_bytes %}
+<div class="mb-3" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;">
+  <div class="d-flex justify-content-between mb-1" style="font-size:.82rem;color:var(--text2);">
+    <span><i class="bi bi-hdd me-1"></i>Storage Used</span>
+    <span>{{ used_bytes|filesizeformat }} / {{ quota_bytes|filesizeformat }}</span>
+  </div>
+  <div style="height:8px;border-radius:4px;background:var(--border);">
+<div style="height:100%;border-radius:4px;width:{{ quota_pct }}%;background:{% if quota_pct > 85 %}#ef4444{% elif quota_pct > 60 %}#f59e0b{% else %}var(--primary){% endif %};"></div></div>
+{% endif %}
+
+
+
+
+
+{% block extra_css %}
+<style>
+  .file-row { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px; display:flex; align-items:center; gap:14px; transition:box-shadow .2s,transform .2s; }
+  .file-row:hover { box-shadow:0 4px 18px rgba(0,0,0,.09); transform:translateY(-1px); }
+  .f-thumb { width:40px; height:40px; border-radius:10px; background:var(--primary-glow); display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:var(--primary); flex-shrink:0; }
+  .f-name { font-weight:600; color:var(--text); font-size:.92rem; }
+  .f-meta { font-size:.76rem; color:var(--text2); margin-top:2px; }
+  .f-actions { display:flex; gap:6px; flex-shrink:0; margin-left:auto; }
+  .sortable-ghost { opacity:.35; background:var(--primary-glow); border:2px dashed var(--primary); }
+  .status-pending  { background:rgba(245,158,11,.15); color:#d97706; }
+  .status-approved { background:rgba(16,185,129,.15);  color:#10b981; }
+  .status-rejected { background:rgba(239,68,68,.15);   color:#ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <h1 class="page-title mb-0">
+    <i class="bi bi-folder2-open me-2" style="color:var(--primary)"></i>My Files
+    <span class="badge bg-primary ms-2" style="font-size:.55em;vertical-align:middle;">{{ user_files|length }}</span>
+  </h1>
+  <div class="d-flex gap-2 align-items-center">
+    <input type="text" class="form-control" id="searchInput" placeholder="🔍 Search files…" style="max-width:220px;">
+    <a href="{% url 'files:upload' %}" class="btn btn-primary"><i class="bi bi-cloud-upload me-1"></i>Upload</a>
+  </div>
+</div>
+
+<!-- Status legend -->
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <span class="badge status-pending px-3 py-2"><i class="bi bi-hourglass-split me-1"></i>Pending — Awaiting admin review</span>
+  <span class="badge status-approved px-3 py-2"><i class="bi bi-check-circle me-1"></i>Approved — Ready to download</span>
+  <span class="badge status-rejected px-3 py-2"><i class="bi bi-x-circle me-1"></i>Rejected — See reason</span>
+</div>
+
+<!-- Info note -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:.82rem;color:var(--text2);margin-bottom:18px;display:flex;align-items:flex-start;gap:8px;">
+  <i class="bi bi-info-circle" style="color:var(--primary);margin-top:2px;"></i>
+  <span>Files up to <strong style="color:var(--text);">10 MB</strong> are approved automatically. Larger files need admin review.</span>
+</div>
+
+{% if user_files %}
+<div id="fileList" class="d-flex flex-column gap-3">
+  {% for file in user_files %}
+  <div class="file-row" data-name="{{ file.file_metadata.name|lower }}">
+    <div class="f-thumb">
+      {% with t=file.file_metadata.file_type %}
+      {% if "image" in t %}<i class="bi bi-file-earmark-image"></i>
+      {% elif "pdf" in t %}<i class="bi bi-file-earmark-pdf" style="color:#ef4444"></i>
+      {% elif "zip" in t %}<i class="bi bi-file-earmark-zip" style="color:#f59e0b"></i>
+      {% elif "word" in t or "document" in t %}<i class="bi bi-file-earmark-word" style="color:#2563eb"></i>
+      {% else %}<i class="bi bi-file-earmark"></i>{% endif %}
+      {% endwith %}
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div class="f-name">{{ file.file_metadata.name }}</div>
+      <div class="f-meta">
+        {{ file.file_metadata.size|filesizeformat }} · Uploaded {{ file.uploaded_at|date:"M d, Y" }}
+        {% if file.tags %} · <span class="badge" style="background:var(--primary-glow);color:var(--primary);">{{ file.tags }}</span>{% endif %}
+        {% if file.expiration_date %} · <span class="text-warning"><i class="bi bi-clock"></i> {{ file.expiration_date }}</span>{% endif %}
+        <!-- Status badge -->
+        {% if file.status == 'pending' %}
+          <span class="badge status-pending ms-1"><i class="bi bi-hourglass-split"></i> Pending Review</span>
+        {% elif file.status == 'approved' %}
+          <span class="badge status-approved ms-1"><i class="bi bi-check-circle"></i> Approved</span>
+        {% elif file.status == 'rejected' %}
+          <span class="badge status-rejected ms-1"><i class="bi bi-x-circle"></i> Rejected{% if file.rejection_note %}: {{ file.rejection_note|truncatechars:40 }}{% endif %}</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="d-none d-md-block" style="color:var(--text2);font-size:.8rem;text-align:center;min-width:80px;">
+      <div>{{ file.owner.username }}</div>
+      <div>
+        {% if file.permissions == 'private' %}<span class="badge" style="background:rgba(239,68,68,.15);color:#ef4444;">🔒 Private</span>
+        {% else %}<span class="badge" style="background:rgba(16,185,129,.15);color:#10b981;">🌐 Public</span>{% endif %}
+      </div>
+    </div>
+    <div class="f-actions">
+      {% if file.status == 'approved' %}
+      <form method="post" action="{% url 'files:file_download' file.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-success" title="Download"><i class="bi bi-download"></i></button>
+      </form>
+      <a href="{% url 'create_share_link' file.id %}" class="btn btn-sm btn-outline-info" title="Share">
+        <i class="bi bi-share"></i>
+      </a>
+      {% else %}
+      <button class="btn btn-sm btn-secondary" disabled title="{% if file.status == 'pending' %}Awaiting admin review{% else %}File was rejected{% endif %}"><i class="bi bi-download"></i></button>
+      {% endif %}
+      <a href="{% url 'files:edit_metadata' file.id %}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+      <form method="post" action="{% url 'files:delete_file' file.id %}" onsubmit="return confirm('Delete {{ file.file_metadata.name|escapejs }}? This cannot be undone.')">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div id="noResults" class="text-center py-5" style="display:none;">
+  <i class="bi bi-search" style="font-size:2.5rem;color:var(--text2);"></i>
+  <p class="mt-3" style="color:var(--text2);">No files match your search.</p>
+</div>
+
+{% else %}
+<div class="card p-5 text-center">
+  <i class="bi bi-folder2-open" style="font-size:3.5rem;color:var(--text2);"></i>
+  <h4 class="mt-3" style="color:var(--text);">No files yet</h4>
+  <p style="color:var(--text2);">Your encrypted files will appear here once uploaded.</p>
+  <a href="{% url 'files:upload' %}" class="btn btn-primary mx-auto" style="width:fit-content;">
+    <i class="bi bi-cloud-upload me-2"></i>Upload First File
+  </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  const rows = document.querySelectorAll('.file-row');
+  let any = false;
+  rows.forEach(r => { const match = r.dataset.name.includes(q); r.style.display = match ? '' : 'none'; if (match) any = true; });
+  document.getElementById('noResults').style.display = any ? 'none' : 'block';
+});
+const list = document.getElementById('fileList');
+if (list) Sortable.create(list, { animation:180, ghostClass:'sortable-ghost' });
+</script>
+{% endblock %}

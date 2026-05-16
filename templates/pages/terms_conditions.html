@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Terms & Conditions · SecuStore{% endblock %}
+
+{% block extra_css %}
+<style>
+  .terms-wrap { max-width: 780px; margin: 0 auto; }
+
+  .terms-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 32px 36px 28px;
+    color: #fff;
+  }
+  .terms-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 6px; }
+  .terms-header p  { font-size: .85rem; color: rgba(255,255,255,.65); margin: 0; }
+
+  .terms-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: var(--card-shadow);
+    padding: 36px;
+  }
+
+  .terms-section { margin-bottom: 32px; }
+  .terms-section h2 {
+    font-size: 1rem; font-weight: 700;
+    color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .terms-section h2 i { color: var(--primary); font-size: 1.1rem; }
+  .terms-section p, .terms-section li {
+    font-size: .88rem; color: var(--text2);
+    line-height: 1.75; margin-bottom: 8px;
+  }
+  .terms-section ul { padding-left: 20px; }
+  .terms-section ul li::marker { color: var(--primary); }
+
+  .terms-highlight {
+    background: var(--primary-glow);
+    border: 1px solid rgba(59,130,246,.25);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: .84rem;
+    color: var(--text);
+    display: flex; gap: 10px; align-items: flex-start;
+    margin-bottom: 24px;
+  }
+  .terms-highlight i { color: var(--primary); font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .terms-footer {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .terms-footer p { font-size: .78rem; color: var(--text2); margin: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="terms-wrap">
+
+  <!-- breadcrumb -->
+  <nav style="font-size:.82rem;color:var(--text2);margin-bottom:18px;">
+    <a href="{% url 'signup' %}" style="color:var(--text2);">
+      <i class="bi bi-person-plus me-1"></i>Sign Up
+    </a>
+    <i class="bi bi-chevron-right mx-1" style="font-size:.7rem;"></i>
+    <span style="color:var(--text);">Terms &amp; Conditions</span>
+  </nav>
+
+  <div>
+    <!-- gradient header -->
+    <div class="terms-header">
+      <h1><i class="bi bi-file-earmark-text me-2"></i>Terms &amp; Conditions</h1>
+      <p>Last updated: April 2026 &nbsp;·&nbsp; SecuStore Secure File Storage Platform</p>
+    </div>
+
+    <!-- body -->
+    <div class="terms-body">
+
+      <div class="terms-highlight">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>Please read these terms carefully before using SecuStore. By creating an account or uploading files, you agree to be bound by the following terms and conditions.</span>
+      </div>
+
+      <!-- 1 -->
+      <div class="terms-section">
+        <h2><i class="bi bi-1-circle"></i> Acceptance of Terms</h2>
+        <p>By accessing or using SecuStore ("the Platform"), you confirm that you are at least 18 years of age, have read and understood these Terms &amp; Conditions, and agree to be legally bound by them. If you do not agree with any part of these terms, you must not use the Platform.</p>
+      </div>
+
+      <!-- 2 -->
+      <div class="terms-section">
+        <h2><i class="bi bi-2-circle"></i> Description of Service</h2>
+        <p>SecuStore provides a web-based encrypted file storage and management service. All files uploaded to the Platform are encrypted using AES-256-CFB before being written to storage. The Platform also provides:</p>
+        <ul>
+          <li>File upload, download, and deletion with full audit logging</li>
+          <li>File metadata management (descriptions, tags, categories, permissions)</li>
+          <li>File expiration with automatic deletion</li>
+          <li>Two-Factor Authentication (2FA) via email OTP for all user accounts</li>
+          <li>An immutable blockchain-based audit ledger recording all file operations</li>
+        </ul>
+      </div>
+
+      <!-- 3 -->
+      <div class="terms-section">
+        <h2><i class="bi bi-3-circle"></i> User Responsibilities</h2>
+        <p>You are solely responsible for:</p>
+        <ul>
+          <li>Maintaining the confidentiality of your account credentials and not sharing them with any third party</li>
+          <li>All activity that occurs under your account</li>
+          <li>Ensuring that files you upload do not violate any applicable laws, regulations, or third-party intellectual property rights</li>
+          <li>Not uploading files that contain malware, viruses, or other malicious code (all uploads are scanned by ClamAV, but you remain responsible)</li>
+          <li>Notifying us immediately if you suspect unauthorized access to your account</li>
+        </ul>
+      </div>
+
+      <!-- 4 -->
+      <div class="terms-section">
+        <h2><i class="bi bi-4-circle"></i> Prohibited Content</h2>
+        <p>The following types of files and content are strictly prohibited on the Platform:</p>
+        <ul>
+          <li>Executable files and scripts (e.g. .exe, .bat, .sh, .php, .py) — these are automatically blocked</li>
+          <li>Content that is unlawful, defamatory, obscene, or harmful to any third party</li>
+          <li>Content that infringes any copyright, trademark, or other intellectual property right</li>
+          <li>Content containing personal data of third parties without their explicit consent</li>
+          <li>Any file or content intended to facilitate illegal activities</li>
+        </ul>
+        <p>Violation of these restrictions may result in immediate account suspension and permanent deletion of all associated files.</p>
+      </div>
+
+      <!-- 5 -->
+      <div class="terms-section">
+        <h2><i class="bi bi-5-circle"></i> Data Privacy &amp; Security</h2>
+        <p>SecuStore is committed to protecting your data. The following security measures are applied to all accounts and files:</p>
+        <ul>
+          <li><strong>Encryption at rest:</strong> All files are encrypted with AES-256-CFB. Plaintext files are never stored on the server filesystem.</li>
+          <li><strong>Integrity verification:</strong> HMAC-SHA256 signatures are verified before every file download. Any tampered file will be rejected.</li>
+          <li><strong>Authentication:</strong> Mandatory Two-Factor Authentication (OTP) is required for every login. Passwords are hashed using Argon2.</li>
+          <li><strong>Audit logging:</strong> All file operations are permanently recorded in a tamper-evident blockchain ledger.</li>
+          <li><strong>Brute-force protection:</strong> Accounts are locked after three consecutive failed login attempts.</li>
+        </ul>
+        <p>Despite these measures, no system can guarantee absolute security. You acknowledge and accept the inherent risks of transmitting data over the internet.</p>
+      </div>
+
+      <!-- 6 -->
+      <div class="terms-section">
+        <h2><i class="bi bi-6-circle"></i> File Deletion &amp; Data Retention</h2>
+        <p>You may delete any of your files at any time. Deletion is immediate and permanent — encrypted file binaries are removed from disk and all associated database records are destroyed. Files with an expiration date set will be automatically and permanently deleted on that date. We do not maintain backups of user-deleted files.</p>
+      </div>
+
+      <!-- 7 -->
+      <div class="terms-section">
+        <h2><i class="bi bi-7-circle"></i> Limitation of Liability</h2>
+        <p>SecuStore and its developers shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Platform, including but not limited to data loss, unauthorized access resulting from compromised credentials, or service interruptions. The Platform is provided "as is" without warranties of any kind.</p>
+      </div>
+
+      <!-- 8 -->
+      <div class="terms-section">
+        <h2><i class="bi bi-8-circle"></i> Changes to Terms</h2>
+        <p>We reserve the right to modify these Terms &amp; Conditions at any time. Changes will be posted on this page with an updated date. Your continued use of the Platform after any modification constitutes acceptance of the revised terms.</p>
+      </div>
+
+      <!-- footer -->
+      <div class="terms-footer">
+        <p><i class="bi bi-geo-alt me-1"></i>SecuStore · Faculty of Information Technology · Zarqa University · Jordan</p>
+        <a href="{% url 'signup' %}" class="btn btn-primary btn-sm">
+          <i class="bi bi-arrow-left me-1"></i>Back to Sign Up
+        </a>
+      </div>
+
+    </div><!-- /terms-body -->
+  </div>
+
+</div>
+{% endblock %}

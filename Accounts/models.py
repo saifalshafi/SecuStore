@@ -1,12 +1,9 @@
 """Models for the Accounts app."""
 
-from time import timezone
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
 from django.utils import timezone
 
 
@@ -22,7 +19,11 @@ class OTP(models.Model):
 
 class Profile(models.Model):
     """User profile with profile image."""
-    user  = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user  = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile'
+    )
     image = models.ImageField(
         upload_to='profile_images/',
         default='profile_images/default.png',
@@ -39,9 +40,12 @@ def create_or_update_profile(sender, instance, created, **kwargs):
     Profile.objects.get_or_create(user=instance)
 
 
-
 class KnownIP(models.Model):
-    user       = models.ForeignKey(User, on_delete=models.CASCADE, related_name='known_ips')
+    user       = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='known_ips'
+    )
     ip_address = models.GenericIPAddressField()
     first_seen = models.DateTimeField(auto_now_add=True)
 
@@ -53,7 +57,11 @@ class KnownIP(models.Model):
 
 
 class SecureShareLink(models.Model):
-    file       = models.ForeignKey('files.File', on_delete=models.CASCADE, related_name='share_links')
+    file       = models.ForeignKey(
+        'files.File',
+        on_delete=models.CASCADE,
+        related_name='share_links'
+    )
     token      = models.CharField(max_length=64, unique=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     expires_at = models.DateTimeField()

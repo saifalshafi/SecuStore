@@ -1,9 +1,7 @@
 """
-Utility functions for the Accounts app.
-
-Security improvements:
-- OTP generated with secrets (cryptographically secure CSPRNG).
-- OTP stored as SHA-256 hash — plain text is never persisted to the DB.
+Utility functions for OTP system (FIXED VERSION)
+- Prevents server crash if email fails
+- Keeps OTP secure (hashed)
 """
 
 import hashlib
@@ -17,41 +15,35 @@ from django.utils.timezone import now
 from .models import OTP
 
 
-# ── OTP Hashing ──────────────────────────────────────────
+# ── HASH OTP ────────────────────────────────
 
 def _hash_otp(plain_otp: str) -> str:
-    """Return SHA-256 hex digest of the OTP."""
     return hashlib.sha256(plain_otp.encode()).hexdigest()
 
 
-# ── Email Templates ───────────────────────────────────────
+# ── TEMPLATES ───────────────────────────────
 
 _OTP_TEMPLATES = {
     'login': {
         'subject': 'Your OTP Code — SecuStore',
-        'intro': 'Your one-time verification code for logging in is:',
+        'intro': 'Your login verification code is:',
     },
     'signup': {
         'subject': 'Verify Your Email — SecuStore',
-        'intro': 'Use this code to verify your email and complete signup:',
+        'intro': 'Use this code to verify your email:',
     },
     'password_change': {
         'subject': 'Password Change Verification — SecuStore',
-        'intro': 'Use this code to confirm your password change:',
+        'intro': 'Use this code to confirm password change:',
     },
 }
 
 
-# ── SEND OTP ─────────────────────────────────────────────
+# ── SEND OTP (FIXED - SAFE) ─────────────────
 
 def send_otp_to_email(user_email: str, purpose: str = 'login') -> None:
-    """
-    Generate OTP, store hash, and send email (SYNCHRONOUS for debugging).
-    """
-
     plain_otp = str(secrets.randbelow(900000) + 100000)
 
-    # Save hashed OTP in DB
     OTP.objects.create(
         user_email=user_email,
         otp_hash=_hash_otp(plain_otp),
@@ -61,65 +53,66 @@ def send_otp_to_email(user_email: str, purpose: str = 'login') -> None:
     template = _OTP_TEMPLATES.get(purpose, _OTP_TEMPLATES['login'])
 
     subject = template['subject']
-    body = (
-        f"{template['intro']}\n\n"
-        f"{plain_otp}\n\n"
-        f"This code expires in 5 minutes.\n"
-        f"If you did not request this, ignore this email."
-    )
+    body = f"""{template['intro']}
 
-    print("📧 OTP EMAIL SENDING...")
-    print("To:", user_email)
-    print("OTP:", plain_otp)
+{plain_otp}
 
-    # 🔥 IMPORTANT: fail_silently=False so you SEE errors
-    send_mail(
-        subject,
-        body,
-        settings.EMAIL_HOST_USER,
-        [user_email],
-        fail_silently=False,
-    )
-
-    print("📧 EMAIL SENT FUNCTION FINISHED")
-
-
-# ── VERIFY OTP ───────────────────────────────────────────
-
-def verify_otp_code(user_email: str, entered_otp: str) -> bool:
-    """Check OTP using constant-time comparison."""
-
-    entered_hash = _hash_otp(entered_otp)
+This code expires in 5 minutes.
+If you did not request this, ignore this email.
+"""
 
     try:
+        send_mail(
+            subject,
+            body,
+            settings.EMAIL_HOST_USER,
+            [user_email],
+            fail_silently=False,
+        )
+        print("📧 OTP sent successfully to", user_email)
+
+    except Exception as e:
+        # ❗ مهم جدًا: يمنع انهيار السيرفر
+        print("❌ EMAIL FAILED:", e)
+
+
+# ── VERIFY OTP ──────────────────────────────
+
+def verify_otp_code(user_email: str, entered_otp: str) -> bool:
+    try:
         otp_record = OTP.objects.filter(user_email=user_email).latest('created_at')
-        return hmac.compare_digest(otp_record.otp_hash, entered_hash)
+        return hmac.compare_digest(
+            otp_record.otp_hash,
+            _hash_otp(entered_otp)
+        )
     except OTP.DoesNotExist:
         return False
 
 
-# ── LOGIN NOTIFICATION ────────────────────────────────────
+# ── LOGIN NOTIFICATION ──────────────────────
 
 def send_login_notification(user, request) -> None:
-    """Send login alert email."""
-
     ip = request.META.get('REMOTE_ADDR', 'Unknown')
-    user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown')[:120]
-    login_time = now().strftime('%Y-%m-%d %H:%M:%S')
+    agent = request.META.get('HTTP_USER_AGENT', 'Unknown')[:120]
 
-    body = (
-        f"Hello {user.username},\n\n"
-        f"New login detected:\n\n"
-        f"Time: {login_time}\n"
-        f"IP: {ip}\n"
-        f"Device: {user_agent}\n\n"
-        f"If this wasn't you, change your password immediately."
-    )
+    body = f"""
+Hello {user.username},
 
-    send_mail(
-        'New Login Alert — SecuStore',
-        body,
-        settings.EMAIL_HOST_USER,
-        [user.email],
-        fail_silently=False,
-    )
+New login detected:
+
+IP: {ip}
+Device: {agent}
+
+If this wasn't you, change your password immediately.
+"""
+
+    try:
+        send_mail(
+            "New Login Alert — SecuStore",
+            body,
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=True,
+        )
+    except Exception:
+        pass

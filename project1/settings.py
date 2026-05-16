@@ -4,7 +4,7 @@ Django settings for project1 — Secure File Storage System (Production Ready)
 
 import os
 from pathlib import Path
-import dj_database_url   # ✅ FIX: مهم جداً
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -80,10 +80,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project1.wsgi.application'
 
-# ── Database ───────────────────────────────────────────
+# ── Database (Postgres Render) ──────────────────────────
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL')
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=True
     )
 }
 
@@ -124,15 +126,18 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ── Email (FIXED) ──────────────────────────────────────
+# ── Email (FIXED OTP) ───────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
 
-EMAIL_HOST_USER = os.environ.get('saefalshafi@gmail.com')
-EMAIL_HOST_PASSWORD = os.environ.get('jspm zkry zrbx iude')
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # ── Sessions ───────────────────────────────────────────
 SESSION_COOKIE_AGE = 600

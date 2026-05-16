@@ -4,6 +4,7 @@ Django settings for project1 — Secure File Storage System (Production Ready)
 
 import os
 from pathlib import Path
+import dj_database_url   # ✅ FIX: مهم جداً
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -17,7 +18,6 @@ MASTER_ENCRYPTION_KEY = os.environ.get(
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
 
-# Render / Production hosts
 ALLOWED_HOSTS = ['*']
 
 # ── Apps ────────────────────────────────────────────────
@@ -44,8 +44,6 @@ INSTALLED_APPS = [
 # ── Middleware ──────────────────────────────────────────
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
-    # WhiteNoise (IMPORTANT for Render)
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -82,7 +80,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project1.wsgi.application'
 
-# ── Database (Render لاحقاً PostgreSQL) ────────────────
+# ── Database ───────────────────────────────────────────
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL')
@@ -119,7 +117,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'project1/static')]
 
-# WhiteNoise storage (IMPORTANT)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
@@ -127,15 +124,15 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ── Email (use ENV in production) ──────────────────────
+# ── Email (FIXED) ──────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 465
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 
-EMAIL_HOST_USER = os.environ.get('saefalshafi@gmail.com')
-EMAIL_HOST_PASSWORD = os.environ.get('jspm zkry zrbx iude')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 # ── Sessions ───────────────────────────────────────────
 SESSION_COOKIE_AGE = 600
